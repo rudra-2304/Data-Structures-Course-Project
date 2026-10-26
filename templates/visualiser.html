@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Huffman Tree Visualiser - Huffman Lab</title>
+    <meta name="description"
+        content="Interactive Huffman coding tree visualiser. See how the min-heap priority queue builds the Huffman tree step by step.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/visualiser.css">
+</head>
+
+<body class="matte-light">
+    <header class="navbar">
+        <div class="brand">
+            <div class="brand-badge">H</div>
+            <div class="brand-title">Huffman Encoding based File Compressor</div>
+        </div>
+        <nav class="nav-tabs" role="tablist">
+            <a href="/" class="nav-btn" style="text-decoration:none;">Main Lab</a>
+            <a href="/visualiser" class="nav-btn active" style="text-decoration:none;">Tree Visualiser</a>
+        </nav>
+    </header>
+    <main class="main-container">
+        <div class="vis-hero">
+            <div class="vis-hero-text">
+                <h1>Huffman Tree Visualiser</h1>
+                <p>Enter any text and watch the Huffman coding algorithm build a min-heap priority queue, merge nodes
+                    step by step, and produce an optimal prefix-free binary tree. Leaves show their symbol, frequency,
+                    and assigned Huffman code. Edges are labelled 0 (left) and 1 (right).</p>
+            </div>
+            <div class="vis-input-wrap">
+                <textarea id="vis-input" class="vis-textarea" rows="3"
+                    placeholder="Enter text to visualise...">aaabbcddddeeeee</textarea>
+                <div class="btn-row">
+                    <button id="btn-build" class="btn btn-orange">Build Tree</button>
+                    <button id="btn-reset" class="btn btn-dark">Reset</button>
+                </div>
+            </div>
+        </div>
+        <div class="metrics-bar" id="metrics-bar" style="display:none;">
+            <div class="metric-pill"><span class="metric-pill-label">Total Chars</span><span class="metric-pill-val"
+                    id="m-total">-</span></div>
+            <div class="metric-pill"><span class="metric-pill-label">Unique Symbols</span><span class="metric-pill-val"
+                    id="m-symbols">-</span></div>
+            <div class="metric-pill"><span class="metric-pill-label">Shannon H(X)</span><span
+                    class="metric-pill-val orange" id="m-entropy">-</span></div>
+            <div class="metric-pill"><span class="metric-pill-label">Avg Code Len</span><span class="metric-pill-val"
+                    id="m-avglen">-</span></div>
+        </div>
+        <div class="vis-info-grid" id="vis-info-grid" style="display:none;">
+            <div class="info-panel">
+                <div class="info-panel-title">Priority Queue <span class="info-badge">Min-Heap</span></div>
+                <div class="pq-list" id="pq-list">
+                    <div class="vis-empty">No data</div>
+                </div>
+            </div>
+            <div class="info-panel">
+                <div class="info-panel-title">Merge Steps <span class="info-badge" id="steps-count">0 steps</span></div>
+                <div class="steps-log" id="steps-log">
+                    <div class="vis-empty">No data</div>
+                </div>
+            </div>
+            <div class="info-panel">
+                <div class="info-panel-title">Huffman Codes <span class="info-badge">Shortest first</span></div>
+                <div style="overflow-y:auto;max-height:280px;">
+                    <table class="codes-table">
+                        <thead>
+                            <tr>
+                                <th>Symbol</th>
+                                <th>Freq</th>
+                                <th>P(x)</th>
+                                <th>Code</th>
+                                <th>Bits</th>
+                            </tr>
+                        </thead>
+                        <tbody id="codes-body">
+                            <tr>
+                                <td colspan="5" class="text-center text-muted" style="padding:1rem;">No data</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="tree-canvas-wrap">
+            <div class="tree-canvas-title">
+                <span>Huffman Tree</span>
+                <div class="legend">
+                    <span><span class="legend-dot" style="background:#ea580c;"></span>Leaf</span>
+                    <span><span class="legend-dot"
+                            style="background:#fff;border:2px solid #d6d3d1;"></span>Internal</span>
+                    <span style="font-family:monospace;color:#78716c;">0</span>=left &nbsp;
+                    <span style="font-family:monospace;color:#ea580c;">1</span>=right
+                </div>
+            </div>
+            <div id="tree-svg-container" class="tree-container">
+                <div class="vis-empty vis-empty-large">Enter text above and click Build Tree to visualise the Huffman
+                    tree.</div>
+            </div>
+        </div>
+    </main>
+    <footer class="footer">
+        <div>Huffman Lab - Matte White and Orange Computer Science Edition</div>
+        <div class="footer-sub">Flask Python 3.8+ Backend - Pure Vanilla HTML5/CSS3/JS Frontend</div>
+    </footer>
+    <script src="/static/js/tree_visualiser.js"></script>
+    <script src="/static/js/visualiser_app.js"></script>
+</body>
+
+</html>

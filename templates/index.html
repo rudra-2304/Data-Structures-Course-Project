@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Huffman Text Compressor & Analysis Lab</title>
+    <meta name="description" content="A minimalist, high-performance Huffman Text File Compressor, Shannon Entropy Analyzer, and Live Bit-Savings Simulator.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="matte-light">
+
+    <!-- Top Navigation Header -->
+    <header class="navbar">
+        <div class="brand">
+            <div class="brand-badge">H</div>
+            <div class="brand-title">Huffman Lab</div>
+        </div>
+        <nav class="nav-tabs" role="tablist">
+            <button class="nav-btn active" data-tab="tab-compressor" role="tab">File Compressor</button>
+            <button class="nav-btn" data-tab="tab-simulator" role="tab">Bit-Savings Simulator</button>
+            <button class="nav-btn" data-tab="tab-analysis" role="tab">Analysis & Codebook</button>
+            <button class="nav-btn" data-tab="tab-benchmark" role="tab">Benchmark Lab</button>
+            <a href="/visualiser" class="nav-btn" style="text-decoration:none;">Tree Visualiser</a>
+        </nav>
+    </header>
+
+    <main class="main-container">
+
+        <!-- ==================== SECTION 1: FILE COMPRESSOR & DECOMPRESSOR ==================== -->
+        <section id="tab-compressor" class="tab-content active">
+            <div class="two-col-grid">
+
+                <!-- Compress Panel -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">1. Compress Text File</h2>
+                        <p class="card-subtitle">Select any <code>.txt</code> file to generate a compressed <code>.compressed.txt</code> file</p>
+                    </div>
+                    <div class="dropzone" id="comp-dropzone">
+                        <input type="file" id="comp-file-input" accept=".txt" hidden>
+                        <div class="dropzone-icon">📄</div>
+                        <div class="dropzone-text"><strong>Drop .txt file here</strong> or click to browse</div>
+                        <div id="comp-file-name" class="dropzone-file-name">No file selected</div>
+                    </div>
+                    <button id="btn-compress" class="btn btn-orange btn-full margin-top">Compress to .compressed.txt</button>
+
+                    <div id="comp-results" class="results-box hidden">
+                        <div class="results-header">Compression Complete</div>
+                        <div class="stats-row">
+                            <div class="stat-unit">
+                                <span class="stat-lbl">Original</span>
+                                <strong id="res-orig-size">0 B</strong>
+                            </div>
+                            <div class="stat-unit">
+                                <span class="stat-lbl">Compressed</span>
+                                <strong id="res-comp-size">0 B</strong>
+                            </div>
+                            <div class="stat-unit">
+                                <span class="stat-lbl">Space Saved</span>
+                                <strong id="res-saved" class="text-orange">0%</strong>
+                            </div>
+                            <div class="stat-unit">
+                                <span class="stat-lbl">Ratio</span>
+                                <strong id="res-ratio">0.00</strong>
+                            </div>
+                        </div>
+                        <a id="download-huff-btn" class="btn btn-dark btn-full margin-top" href="#" download>💾 Download .compressed.txt File</a>
+                    </div>
+                </div>
+
+                <!-- Decompress Panel -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">2. Decompress & Verify</h2>
+                        <p class="card-subtitle">Decompress a <code>.compressed.txt</code> file and verify cryptographic integrity</p>
+                    </div>
+                    <div class="dropzone" id="decomp-dropzone">
+                        <input type="file" id="decomp-file-input" accept=".txt,.compressed.txt" hidden>
+                        <div class="dropzone-icon">🔓</div>
+                        <div class="dropzone-text"><strong>Drop .compressed.txt file here</strong> or click to browse</div>
+                        <div id="decomp-file-name" class="dropzone-file-name">No file selected</div>
+                    </div>
+                    <button id="btn-decompress" class="btn btn-orange btn-full margin-top">🔓 Decompress & Verify SHA-256</button>
+
+                    <div id="decomp-results" class="results-box hidden">
+                        <div class="verification-badge">
+                            <span class="v-icon">✓</span>
+                            <span>Decompression Successful — 100% SHA-256 Byte Match</span>
+                        </div>
+                        <div class="stats-row margin-top">
+                            <div class="stat-unit">
+                                <span class="stat-lbl">Compressed Input</span>
+                                <strong id="dec-comp-size">0 B</strong>
+                            </div>
+                            <div class="stat-unit">
+                                <span class="stat-lbl">Restored Output</span>
+                                <strong id="dec-orig-size">0 B</strong>
+                            </div>
+                        </div>
+                        <a id="download-decomp-btn" class="btn btn-dark btn-full margin-top" href="#" download>💾 Download Restored Text File</a>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ==================== SECTION 2: LIVE BIT-SAVINGS SIMULATOR ==================== -->
+        <section id="tab-simulator" class="tab-content">
+            <div class="card">
+                <div class="card-header flex-between">
+                    <div>
+                        <h2 class="card-title">Live ASCII vs Huffman Bit-Savings Simulator</h2>
+                        <p class="card-subtitle">Type text below to compare 8-bit fixed ASCII bitstream vs Huffman variable-length bitstream in real time</p>
+                    </div>
+                </div>
+                <div class="input-row">
+                    <input type="text" id="sim-input-text" value="hello huffman lab!" class="input-text" placeholder="Type text to simulate bit encoding...">
+                    <button id="btn-run-sim" class="btn btn-orange">Simulate Bit Savings</button>
+                </div>
+            </div>
+
+            <!-- Bit-Savings Overview Badges -->
+            <div class="metrics-grid margin-top">
+                <div class="metric-card">
+                    <span class="m-lbl">Fixed 8-Bit ASCII</span>
+                    <strong class="m-val" id="sim-ascii-bits">0 bits</strong>
+                    <span class="m-sub">8 bits / character</span>
+                </div>
+                <div class="metric-card orange-card">
+                    <span class="m-lbl">Variable Huffman</span>
+                    <strong class="m-val text-orange" id="sim-huffman-bits">0 bits</strong>
+                    <span class="m-sub">Optimized prefix code</span>
+                </div>
+                <div class="metric-card">
+                    <span class="m-lbl">Total Bit Savings</span>
+                    <strong class="m-val text-orange" id="sim-saved-pct">0.0%</strong>
+                    <span class="m-sub">Payload reduction</span>
+                </div>
+            </div>
+
+            <!-- Side by Side Bitstream Display -->
+            <div class="two-col-grid margin-top">
+                <div class="card">
+                    <h3 class="card-title">Fixed 8-Bit ASCII Bitstream</h3>
+                    <p class="card-subtitle">Every character requires a fixed 8-bit byte block (e.g. 'h' = <code>01101000</code>)</p>
+                    <div class="bitstream-box mono" id="sim-ascii-stream"></div>
+                </div>
+                <div class="card">
+                    <h3 class="card-title">Variable-Length Huffman Bitstream</h3>
+                    <p class="card-subtitle">Frequent characters use fewer bits (e.g. 'e' = <code>10</code>)</p>
+                    <div class="bitstream-box mono highlight-box" id="sim-huffman-stream"></div>
+                </div>
+            </div>
+
+            <!-- Per-Character Breakdown Tokens -->
+            <div class="card margin-top">
+                <h3 class="card-title">Character Bit Breakdown</h3>
+                <div class="token-flex" id="sim-tokens-container"></div>
+            </div>
+        </section>
+
+        <!-- ==================== SECTION 3: ANALYSIS & CODEBOOK ==================== -->
+        <section id="tab-analysis" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Text Information Analysis</h2>
+                    <p class="card-subtitle">Analyze text frequency, Shannon Entropy, and prefix code distribution</p>
+                </div>
+                <div class="input-row">
+                    <textarea id="analysis-text-input" rows="3" class="input-textarea" placeholder="Enter text to analyze...">Huffman coding assigns shorter bit strings to more frequent characters, optimizing information density.</textarea>
+                    <button id="btn-run-analysis" class="btn btn-orange">Calculate Metrics & Codebook</button>
+                </div>
+            </div>
+
+            <!-- Analytical Metrics Grid -->
+            <div class="metrics-grid margin-top">
+                <div class="metric-card">
+                    <span class="m-lbl">Original Size</span>
+                    <strong class="m-val" id="an-size">0 B</strong>
+                </div>
+                <div class="metric-card">
+                    <span class="m-lbl">Unique Symbols</span>
+                    <strong class="m-val" id="an-symbols">0</strong>
+                    <span class="m-sub">Alphabet size (|Σ|)</span>
+                </div>
+                <div class="metric-card">
+                    <span class="m-lbl">Shannon Entropy H(X)</span>
+                    <strong class="m-val text-orange" id="an-entropy">0.00</strong>
+                    <span class="m-sub">bits / symbol</span>
+                </div>
+                <div class="metric-card">
+                    <span class="m-lbl">Avg Code Length L<sub>avg</sub></span>
+                    <strong class="m-val" id="an-avg-len">0.00</strong>
+                    <span class="m-sub">bits / symbol</span>
+                </div>
+                <div class="metric-card">
+                    <span class="m-lbl">Coding Efficiency</span>
+                    <strong class="m-val text-orange" id="an-efficiency">0.0%</strong>
+                    <span class="m-sub">H(X) / L<sub>avg</sub></span>
+                </div>
+            </div>
+
+            <div class="two-col-grid margin-top">
+                <!-- Frequency Histogram -->
+                <div class="card">
+                    <h3 class="card-title">Symbol Frequency Histogram</h3>
+                    <div class="chart-container">
+                        <svg id="freq-chart-svg" width="100%" height="240"></svg>
+                    </div>
+                </div>
+
+                <!-- Theoretical CS Commentary -->
+                <div class="card cs-card">
+                    <h3 class="card-title">Information Theory Insight</h3>
+                    <div class="cs-body" id="an-cs-explanation">
+                        Click "Calculate Metrics & Codebook" to analyze symbol entropy based on Shannon's Source Coding Theorem.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sortable Codebook Table -->
+            <div class="card margin-top">
+                <div class="card-header flex-between">
+                    <h3 class="card-title">Huffman Codebook Table</h3>
+                    <input type="text" id="codebook-filter" placeholder="Filter symbol or code..." class="input-sm">
+                </div>
+                <div class="table-container">
+                    <table class="data-table" id="codebook-table">
+                        <thead>
+                            <tr>
+                                <th data-sort="symbol" class="sortable">Symbol <span class="sort-icon">⇅</span></th>
+                                <th data-sort="freq" class="sortable">Frequency <span class="sort-icon">⇅</span></th>
+                                <th data-sort="prob" class="sortable">Probability P(x) <span class="sort-icon">⇅</span></th>
+                                <th data-sort="code" class="sortable">Huffman Prefix Code <span class="sort-icon">⇅</span></th>
+                                <th data-sort="code_length" class="sortable">Code Length (bits) <span class="sort-icon">⇅</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="codebook-body">
+                            <tr><td colspan="5" class="text-center text-muted">No data available.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== SECTION 4: MULTI-FILE BENCHMARK LAB ==================== -->
+        <section id="tab-benchmark" class="tab-content">
+            <div class="card">
+                <div class="card-header flex-between">
+                    <div>
+                        <h2 class="card-title">Multi-Dataset Compression Benchmark Matrix</h2>
+                        <p class="card-subtitle">Test and compare Huffman compression across English prose, source code, DNA sequences, repetitive text, and edge cases</p>
+                    </div>
+                    <button id="btn-run-benchmark" class="btn btn-orange">Run Benchmark Matrix</button>
+                </div>
+
+                <div class="table-container margin-top">
+                    <table class="data-table" id="benchmark-table">
+                        <thead>
+                            <tr>
+                                <th>Dataset Name</th>
+                                <th>Category</th>
+                                <th>Original Size</th>
+                                <th>Compressed Size</th>
+                                <th>Ratio</th>
+                                <th>Space Saved</th>
+                                <th>Entropy H(X)</th>
+                                <th>Avg Code Len</th>
+                                <th>Efficiency</th>
+                            </tr>
+                        </thead>
+                        <tbody id="benchmark-body">
+                            <tr><td colspan="9" class="text-center text-muted">Click "Run Benchmark Matrix" to execute test suite.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div>Huffman Lab — Matte White & Orange Computer Science Edition</div>
+        <div class="footer-sub">Flask Python 3.8+ Backend • Pure Vanilla HTML5/CSS3/JS Frontend</div>
+    </footer>
+
+    <!-- Modular Frontend JS -->
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/frequency_chart.js"></script>
+    <script src="/static/js/experiment.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

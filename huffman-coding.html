@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Huffman Coding Visualizer</title>
+
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+<style>
+.node { transition: transform 0.3s; }
+.edge { stroke: #374151; stroke-width: 2px; }
+</style>
+</head>
+
+<body class="bg-gradient-to-br from-indigo-50 via-pink-50 to-yellow-50 min-h-screen">
+
+<div class="max-w-7xl mx-auto p-6">
+<h1 class="text-3xl font-extrabold mb-4">Huffman Coding Visualizer</h1>
+
+<!-- INPUT -->
+<textarea id="inputArea" rows="3"
+  class="w-full p-2 border rounded mb-4">aaabbcddddeeeee</textarea>
+
+<div class="flex gap-3 mb-4">
+<button id="buildBtn" class="bg-indigo-600 text-white px-4 py-2 rounded">
+Build Tree
+</button>
+<button id="resetBtn" class="bg-red-500 text-white px-4 py-2 rounded">
+Reset
+</button>
+</div>
+
+<!-- INFO PANELS -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+<div class="bg-white p-3 rounded shadow">
+<h2 class="font-semibold mb-2">Priority Queue</h2>
+<div id="pqList"></div>
+</div>
+
+<div class="bg-white p-3 rounded shadow">
+<h2 class="font-semibold mb-2">Algorithm Steps</h2>
+<div id="steps" class="h-60 overflow-auto bg-gray-50 p-2 rounded"></div>
+</div>
+
+<div class="bg-white p-3 rounded shadow">
+<h2 class="font-semibold mb-2">Huffman Codes</h2>
+<div id="codes"></div>
+</div>
+
+</div>
+
+<!-- TREE -->
+<div class="mt-6 bg-white p-4 rounded shadow overflow-auto">
+<svg id="svg" class="border rounded bg-white"></svg>
+</div>
+
+</div>
+
+<script>
+/* ================= HUFFMAN LOGIC ================= */
+
+let idCounter = 0;
+const uid = () => "n" + idCounter++;
+
+function parseInput(text) {
+  const freq = {};
+  for (let c of text) {
+    if (c.trim() === "") continue;
+    freq[c] = (freq[c] || 0) + 1;
+  }
+  return Object.keys(freq).map(k => ({ symbol: k, freq: freq[k] }));
+}
+
+function enqueue(q, n) {
+  q.push(n);
+  q.sort((a, b) => a.freq - b.freq);
+}
+
+function buildHuffman(items) {
+  const q = [];
+  const steps = [];
+
+  items.forEach(i =>
+    enqueue(q, { id: uid(), symbol: i.symbol, freq: i.freq, left: null, right: null })
+  );
+
+  steps.push({ type: "init", queue: [...q] });
+
+  while (q.length > 1) {
+    const a = q.shift();
+    const b = q.shift();
+
+    const m = {
+      id: uid(),
+      symbol: null,
+      freq: a.freq + b.freq,
+      left: a,
+      right: b
+    };
+
+    enqueue(q, m);
+    steps.push({ type: "merge", a, b, m, queue: [...q] });
+  }
+
+  return { root: q[0], steps };
+}
+
+function generateCodes(node, code = "", map = {}) {
+  if (!node) return map;
+
+  if (!node.left && !node.right)
+    map[node.symbol] = code || "0";
+
+  generateCodes(node.left, code + "0", map);
+  generateCodes(node.right, code + "1", map);
+
+  return map;
+}
+
+/* ================= SVG TREE ================= */
+
+function clearSVG(svg) {
+  svg.innerHTML = "";
+}
+
+function drawTree(svg, root) {
+  clearSVG(svg);
+  if (!root) return;
+
+  const positions = new Map();
+  let xCounter = 0;
+
+  const GAP_X = 70;
+  const GAP_Y = 90;
+
+  function assign(node, depth) {
+    if (!node) return;
+    assign(node.left, depth + 1);
+
+    xCounter++;
+    positions.set(node.id, {
+      x: xCounter * GAP_X,
+      y: depth * GAP_Y + 50,
+      node
+    });
+
+    assign(node.right, depth + 1);
+  }
+
+  assign(root, 0);
+
+  const width = (xCounter + 2) * GAP_X;
+  const height = Math.max(...[...positions.values()].map(p => p.y)) + 80;
+
+  svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  svg.setAttribute("width", width);
+  svg.setAttribute("height", height);
+
+  positions.forEach(p => {
+    if (p.node.left) drawLine(svg, p, positions.get(p.node.left.id));
+    if (p.node.right) drawLine(svg, p, positions.get(p.node.right.id));
+  });
+
+  positions.forEach(p => drawNode(svg, p));
+}
+
+function drawLine(svg, a, b) {
+  const l = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  l.setAttribute("x1", a.x);
+  l.setAttribute("y1", a.y);
+  l.setAttribute("x2", b.x);
+  l.setAttribute("y2", b.y);
+  l.setAttribute("class", "edge");
+  svg.appendChild(l);
+}
+
+function drawNode(svg, p) {
+  const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  g.setAttribute("transform", `translate(${p.x},${p.y})`);
+
+  const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  c.setAttribute("r", 22);
+  c.setAttribute("fill", p.node.symbol ? "#fde68a" : "#c7d2fe");
+  c.setAttribute("stroke", "#111");
+  g.appendChild(c);
+
+  const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  t.setAttribute("text-anchor", "middle");
+  t.setAttribute("y", "5");
+  t.setAttribute("font-size", "12");
+  t.textContent = p.node.freq;
+  g.appendChild(t);
+
+  if (p.node.symbol) {
+    const s = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    s.setAttribute("text-anchor", "middle");
+    s.setAttribute("y", "-20");
+    s.setAttribute("font-weight", "bold");
+    s.textContent = p.node.symbol;
+    g.appendChild(s);
+  }
+
+  svg.appendChild(g);
+}
+
+/* ================= UI ================= */
+
+const inputArea = document.getElementById("inputArea");
+const pqList = document.getElementById("pqList");
+const stepsDiv = document.getElementById("steps");
+const codesDiv = document.getElementById("codes");
+const svg = document.getElementById("svg");
+
+function renderPQ(q) {
+  pqList.innerHTML = q.map(x =>
+    `${x.symbol || "•"} : ${x.freq}`
+  ).join("<br>");
+}
+
+/* ===== ALGORITHM STYLE STEPS ===== */
+function renderSteps(steps) {
+  stepsDiv.innerHTML = "";
+
+  steps.forEach((s, i) => {
+    const d = document.createElement("div");
+    d.className = "mb-3 p-2 bg-white border rounded text-sm";
+
+    if (s.type === "init") {
+      d.innerHTML = `
+        <b>Step 1: Initialize Min-Priority Queue</b><br>
+        1. Read input string.<br>
+        2. Calculate frequency of each character.<br>
+        3. Insert all characters into min-priority queue.<br>
+        <b>Queue:</b> ${s.queue.map(x => `${x.symbol}(${x.freq})`).join(", ")}
+      `;
+    } else {
+      d.innerHTML = `
+        <b>Step ${i + 1}: Merge Lowest Frequency Nodes</b><br>
+        1. Remove two minimum frequency nodes.<br>
+        &nbsp;&nbsp;• ${s.a.symbol || "Internal"} (${s.a.freq})<br>
+        &nbsp;&nbsp;• ${s.b.symbol || "Internal"} (${s.b.freq})<br>
+        2. Create new node with frequency = ${s.m.freq}.<br>
+        3. Insert new node back into queue.<br>
+        <b>Queue:</b> ${s.queue.map(x => `${x.symbol || "•"}(${x.freq})`).join(", ")}
+      `;
+    }
+
+    stepsDiv.appendChild(d);
+  });
+}
+
+function renderCodes(codes) {
+  codesDiv.innerHTML = "";
+  Object.keys(codes).sort().forEach(k => {
+    codesDiv.innerHTML += `<div>${k} : <b>${codes[k]}</b></div>`;
+  });
+}
+
+document.getElementById("buildBtn").onclick = () => {
+  idCounter = 0;
+  const { root, steps } = buildHuffman(parseInput(inputArea.value));
+  renderPQ(steps[0].queue);
+  renderSteps(steps);
+  drawTree(svg, root);
+  renderCodes(generateCodes(root));
+};
+
+document.getElementById("resetBtn").onclick = () => {
+  inputArea.value = "";
+  pqList.innerHTML = "";
+  stepsDiv.innerHTML = "";
+  codesDiv.innerHTML = "";
+  clearSVG(svg);
+};
+</script>
+
+</body>
+</html>
